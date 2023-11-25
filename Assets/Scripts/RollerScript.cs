@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using Random = UnityEngine.Random;
 
 public class RollerScript : MonoBehaviour
@@ -17,77 +20,87 @@ public class RollerScript : MonoBehaviour
     private DiceScript Dice;
 
     [SerializeField]
-    private TextMeshProUGUI diceResult;
+    private int diceResult;
 
     [SerializeField]
-    private TextMeshProUGUI modsList;
+    private TextMeshProUGUI diceResultText;
 
     [SerializeField]
-    private List<DiceModifier> Mods = new();
+    private TextMeshProUGUI modsListText;
+
+    [SerializeField]
+    private List<DiceModifier> modifiers = new();
     [SerializeField]
     private int ModsCapacity = 10;
 
     public event Action OnModsChanged = delegate { };
+    public UnityEvent OnResultCalculated;
+
+    [SerializeField]
+    private DiceModAnimator animator;
 
     private void Start()
     {
-        Dice.OnDiceStop += SetResultText;
+        Dice.OnDiceStop += () => StartCoroutine(CalculateResult());
 
         OnModsChanged += SetModsInfo;
 
-        Mods.Capacity = ModsCapacity;
+        modifiers.Capacity = ModsCapacity;
     }
 
-    private void SetResultText()
+    private void OnDestroy()
     {
-        int result = Dice.GetUpperSide();
-        result += GetModifiers();
+        OnModsChanged = null;
+    }
 
-        diceResult.text = result.ToString();
+    private IEnumerator CalculateResult()
+    {
+        diceResult = Dice.GetUpperSide();
+
+        yield return StartCoroutine(animator.StartAnimation(diceResultText, modsListText.transform, modifiers, diceResult));
+
+        OnResultCalculated?.Invoke();
     }
 
     private void SetModsInfo()
     {
-        modsList.text = string.Empty;
-        Mods.ForEach(x => modsList.text += $"{x.Value:+#.##;-#.##;(0)}, ");
-    }
-
-    public int GetModifiers()
-    {
-        int result = 0;
-        Mods.ForEach(x => result += x.Value);
-
-        return result;
+        modsListText.text = string.Join(", ", modifiers.Select(x => $"{x.Value:+#.##;-#.##;(0)}"));
     }
 
     public void RollDice()
     {
         if (Dice.rb.velocity == Vector3.zero)
         {
-            Dice.transform.position = transform.position;
-
-            float x = Random.Range(-MaxForce, MaxForce) ;
-            float y = Random.Range(-MaxForce, MaxForce) ;
-            float z = Random.Range(-MaxForce, MaxForce) ;
-
-            Dice.rb.AddForce(x, y, z, ForceMode.Impulse);
-            Dice.rb.AddTorque(x * DiceTorqueMod, y * DiceTorqueMod, z * DiceTorqueMod);
+            ApplyForces();
 
             StartCoroutine(Dice.WaitTillStop());
         }
     }
 
+    private void ApplyForces()
+    {
+        Dice.transform.position = transform.position;
+
+        float x = Random.Range(-MaxForce, MaxForce);
+        float y = Random.Range(-MaxForce, MaxForce);
+        float z = Random.Range(-MaxForce, MaxForce);
+
+        Dice.rb.AddForce(x, y, z, ForceMode.Impulse);
+        Dice.rb.AddTorque(x * DiceTorqueMod, y * DiceTorqueMod, z * DiceTorqueMod);
+    }
+
+    #region [Modifiers Methods]
     public void AddRandomMod()
     {
-        if (Mods.Capacity > Mods.Count + 1)
+        if (modifiers.Capacity > modifiers.Count + 1)
         {
-            int value = Random.Range(-5, 5);
+            int value = Random.Range(-5, 6);
             if (value == 0)
             {
                 value++;
             }
 
-            Mods.Add(new(value));
+            modifiers.Add(new(value));
 
             OnModsChanged?.Invoke();
         }
@@ -95,11 +108,12 @@ public class RollerScript : MonoBehaviour
 
     public void DeleteMod()
     {
-        if (Mods.Count > 0)
+        if (modifiers.Count > 0)
         {
-            Mods.RemoveAt(Mods.Count - 1);
+            modifiers.RemoveAt(modifiers.Count - 1);
 
             OnModsChanged?.Invoke();
         }
     }
+    #endregion
 }

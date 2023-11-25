@@ -24,6 +24,9 @@ public class DiceScript : MonoBehaviour
 
     public event Action OnDiceStop = delegate { };
 
+    [SerializeField]
+    private List<Transform> sides;
+
 #if UNITY_EDITOR
     private void OnValidate()
     {
@@ -56,6 +59,11 @@ public class DiceScript : MonoBehaviour
     }
 #endif
 
+    private void OnDestroy()
+    {
+        OnDiceStop = null;
+    }
+
     public IEnumerator WaitTillStop()
     {
         yield return new WaitForSeconds(1);
@@ -72,10 +80,13 @@ public class DiceScript : MonoBehaviour
 
         foreach (var item in Sides)
         {
-            if (Physics.Raycast(item.transform.position - item.transform.forward, item.transform.forward, out RaycastHit ray, rayLength, 1 << 6) && ray.distance > longestDistance)
+            if (Physics.Raycast(item.transform.position - item.transform.forward, item.transform.forward, out RaycastHit ray, rayLength, 1 << 6))
             {
-                longestDistance = ray.distance;
-                result = int.Parse(item.name);
+                if (ray.distance > longestDistance)
+                {
+                    longestDistance = ray.distance;
+                    result = int.Parse(item.name);
+                }
             }
             else
             {
