@@ -1,5 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+///  ласс, отвечающий за случайное вращение камеры
+/// </summary>
 public class CameraRotator : MonoBehaviour
 {
     [SerializeField]
@@ -12,13 +15,13 @@ public class CameraRotator : MonoBehaviour
 
     void OnEnable()
     {
-        RotateX = Random.Range(-1f, 1f);
-        RotateY = Random.Range(-1f, 1f);
-        RotateZ = Random.Range(-1f, 1f);
+        RotateX = Random.Range(-1f, 1f) * rotationSpeed;
+        RotateY = Random.Range(-1f, 1f) * rotationSpeed;
+        RotateZ = Random.Range(-1f, 1f) * rotationSpeed;
     }
 
     void Update()
     {
-        gameObject.transform.Rotate(RotateX * Time.deltaTime * rotationSpeed, RotateY * Time.deltaTime * rotationSpeed, RotateZ * Time.deltaTime * rotationSpeed);
+        gameObject.transform.Rotate(RotateX * Time.deltaTime , RotateY * Time.deltaTime, RotateZ * Time.deltaTime);
     }
 }

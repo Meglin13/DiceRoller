@@ -7,34 +7,55 @@ using UnityEngine;
 using UnityEngine.Events;
 using Random = UnityEngine.Random;
 
+/// <summary>
+/// Класс, отвечающий за логику броска кубика
+/// </summary>
 public class RollerScript : MonoBehaviour
 {
+    #region [Roll Forces]
     [SerializeField]
     private float MaxForce = 5;
 
     [SerializeField]
     [Range(0, 5f)]
-    private float DiceTorqueMod = 5;
+    private float DiceTorqueMod = 5; 
+    #endregion
 
+    /// <summary>
+    /// Ссылка на объект кубика
+    /// </summary>
     [SerializeField]
     private DiceScript Dice;
 
     [SerializeField]
     private int diceResult;
 
+    #region TextMeshPro
     [SerializeField]
     private TextMeshProUGUI diceResultText;
 
     [SerializeField]
-    private TextMeshProUGUI modsListText;
+    private TextMeshProUGUI modsListText; 
+    #endregion
 
+    #region Modifiers
     [SerializeField]
     private List<DiceModifier> modifiers = new();
     [SerializeField]
-    private int ModsCapacity = 10;
+    private int ModsCapacity = 10; 
+    #endregion
 
+    #region Events
+    /// <summary>
+    /// Событие, вызываемое при изменение модификаторов
+    /// </summary>
     public event Action OnModsChanged = delegate { };
-    public UnityEvent OnResultCalculated;
+
+    /// <summary>
+    /// Событие, вызываемое после подсчета результата
+    /// </summary>
+    public UnityEvent OnResultCalculated; 
+    #endregion
 
     [SerializeField]
     private DiceModAnimator animator;
@@ -48,11 +69,12 @@ public class RollerScript : MonoBehaviour
         modifiers.Capacity = ModsCapacity;
     }
 
-    private void OnDestroy()
-    {
-        OnModsChanged = null;
-    }
+    private void OnDestroy() => OnModsChanged = null;
 
+    /// <summary>
+    /// Метод подсчета результата броска
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator CalculateResult()
     {
         diceResult = Dice.GetUpperSide();
@@ -62,11 +84,9 @@ public class RollerScript : MonoBehaviour
         OnResultCalculated?.Invoke();
     }
 
-    private void SetModsInfo()
-    {
-        modsListText.text = string.Join(", ", modifiers.Select(x => $"{x.Value:+#.##;-#.##;(0)}"));
-    }
-
+    /// <summary>
+    /// Метод броска кубика. Выполняется только если кубик в покое
+    /// </summary>
     public void RollDice()
     {
         if (Dice.rb.velocity == Vector3.zero)
@@ -77,6 +97,9 @@ public class RollerScript : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Метод для приложения случайных силы и вращения кубику
+    /// </summary>
     private void ApplyForces()
     {
         Dice.transform.position = transform.position;
@@ -89,7 +112,12 @@ public class RollerScript : MonoBehaviour
         Dice.rb.AddTorque(x * DiceTorqueMod, y * DiceTorqueMod, z * DiceTorqueMod);
     }
 
+    private void SetModsInfo() => modsListText.text = string.Join(", ", modifiers.Select(x => $"{x.Value:+#.##;-#.##;(0)}"));
+
     #region [Modifiers Methods]
+    /// <summary>
+    /// Метод для добавления случайного модификатора
+    /// </summary>
     public void AddRandomMod()
     {
         if (modifiers.Capacity > modifiers.Count + 1)
@@ -106,6 +134,9 @@ public class RollerScript : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Метод удаления модификатора из списка
+    /// </summary>
     public void DeleteMod()
     {
         if (modifiers.Count > 0)

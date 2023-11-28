@@ -1,6 +1,9 @@
 ﻿using System;
 using UnityEngine;
 
+/// <summary>
+/// Класс модификатора результата кубика
+/// </summary>
 [Serializable]
 public class DiceModifier
 {

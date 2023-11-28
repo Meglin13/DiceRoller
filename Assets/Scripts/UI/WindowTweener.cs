@@ -3,34 +3,34 @@ using DG.Tweening;
 
 public class WindowTweener : MonoBehaviour
 {
-    [SerializeField]
+    #region References
     private RectTransform rect;
+    private CanvasGroup canvasGroup; 
+    #endregion
 
-    [SerializeField]
-    private CanvasGroup canvasGroup;
-
+    #region [Tween Config]
     [SerializeField]
     private Ease ease;
-
-    [SerializeField]
-    private int LoopCount = 1;
 
     [SerializeField]
     [Range(0, 10f)]
     private float duration;
 
     [SerializeField]
-    private int endAnchorValue = 20;
+    private int endAnchorValue = 20; 
+    #endregion
 
+    #region [Fade Config]
     [Header("Fade")]
     [SerializeField]
     private Ease fadeEase;
 
     [SerializeField]
     [Range(0, 5f)]
-    private float fadeDuration;
+    private float fadeDuration; 
+    #endregion
 
-    private void Start()
+    private void OnEnable()
     {
         rect = GetComponent<RectTransform>();
         canvasGroup = rect.GetComponent<CanvasGroup>();
@@ -38,6 +38,9 @@ public class WindowTweener : MonoBehaviour
         OnOpen();
     }
 
+    /// <summary>
+    /// Метод, отвечающий за анимацию окна при его открытии
+    /// </summary>
     [ContextMenu("Play Open")]
     public void OnOpen()
     {
@@ -50,10 +53,5 @@ public class WindowTweener : MonoBehaviour
         canvasGroup.alpha = 0;
 
         canvasGroup.DOFade(1f, fadeDuration).SetEase(fadeEase);
-    }
-
-    public void OnClose()
-    {
-
     }
 }
