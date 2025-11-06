@@ -35,14 +35,21 @@ public class RollerScript : MonoBehaviour
     private TextMeshProUGUI diceResultText;
 
     [SerializeField]
-    private TextMeshProUGUI modsListText; 
+    private TextMeshProUGUI modsListText;
     #endregion
 
-    #region Modifiers
+    #region Modifier
     [SerializeField]
-    private List<DiceModifier> modifiers = new();
-    [SerializeField]
-    private int ModsCapacity = 10; 
+    private int modifier = 0;
+    public int Modifier
+    {
+        get => modifier;
+        private set
+        {
+            modifier = value;
+            OnModsChanged?.Invoke();
+        }
+    }
     #endregion
 
     #region Events
@@ -65,8 +72,6 @@ public class RollerScript : MonoBehaviour
         Dice.OnDiceStop += () => StartCoroutine(CalculateResult());
 
         OnModsChanged += SetModsInfo;
-
-        modifiers.Capacity = ModsCapacity;
     }
 
     private void OnDestroy() => OnModsChanged = null;
@@ -78,6 +83,11 @@ public class RollerScript : MonoBehaviour
     private IEnumerator CalculateResult()
     {
         diceResult = Dice.GetUpperSide();
+
+        List<DiceModifier> modifiers = new List<DiceModifier>
+        {
+            new DiceModifier(modifier)
+        };
 
         yield return StartCoroutine(animator.StartAnimation(diceResultText, modsListText.transform, modifiers, diceResult));
 
@@ -112,39 +122,17 @@ public class RollerScript : MonoBehaviour
         Dice.rb.AddTorque(x * DiceTorqueMod, y * DiceTorqueMod, z * DiceTorqueMod);
     }
 
-    private void SetModsInfo() => modsListText.text = string.Join(", ", modifiers.Select(x => $"{x.Value:+#.##;-#.##;(0)}"));
+    private void SetModsInfo()
+    {
+        //modsListText.text = string.Join(", ", modifiers.Select(x => $"{x.Value:+#.##;-#.##;(0)}"));
+        modsListText.text = modifier != 0 ? modifier.ToString() : "";
+    }
 
     #region [Modifiers Methods]
     /// <summary>
-    /// Метод для добавления случайного модификатора
+    /// Метод для добавления модификатора
     /// </summary>
-    public void AddRandomMod()
-    {
-        if (modifiers.Capacity > modifiers.Count + 1)
-        {
-            int value = Random.Range(-5, 6);
-            if (value == 0)
-            {
-                value++;
-            }
+    public void AddMod(int value) => Modifier += value;
 
-            modifiers.Add(new(value));
-
-            OnModsChanged?.Invoke();
-        }
-    }
-
-    /// <summary>
-    /// Метод удаления модификатора из списка
-    /// </summary>
-    public void DeleteMod()
-    {
-        if (modifiers.Count > 0)
-        {
-            modifiers.RemoveAt(modifiers.Count - 1);
-
-            OnModsChanged?.Invoke();
-        }
-    }
     #endregion
 }

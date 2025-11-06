@@ -53,7 +53,7 @@ public class DiceModAnimator : MonoBehaviour
         diceResultText.text = result.ToString();
 
         // Анимация будет проигрываться только, если есть модификаторы
-        if (diceMods.Count > 0)
+        if (diceMods.Count > 0 && diceMods[0].Value != 0)
         {
             // Устанавливается начальная позиция, которая находится на месте игрового объекта с текстом, отображающим список модификаторов
             var initialPosition = modsListTextTransform.transform.position;
